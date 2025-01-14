@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import mysql.connector
 import requests
@@ -6,6 +7,13 @@ import requests
 import wechat
 from gewechat import sendMsgToTeam
 
+logging.basicConfig(
+    filename='C:/work/code/dazhong/app.log',  # 日志文件名
+    encoding='utf-8',
+    filemode='a',  # 文件模式，'a' 表示追加，'w' 表示覆盖
+    level=logging.INFO,  # 日志级别，DEBUG、INFO、WARNING、ERROR、CRITICAL
+    format='%(asctime)s %(levelname)s: %(message)s'  # 日志格式
+)
 # MySQL 配置
 DB_CONFIG = {
     'host': 'localhost',  # MySQL 地址
@@ -69,7 +77,8 @@ def process_data(data):
 
         # 判断是否包含 V豆奖励关键字
         if contains_v_dou_award(art_content):
-            print(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
+            # print(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
+            logging.info(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             # 标记该 id 为已处理
             mark_id_as_processed(item_id)
             sendMsgToTeam(f"新V豆奖励\n文章标题: {item['artTitle']}\n发布时间: {time_str}",
@@ -120,7 +129,8 @@ def fetch_and_process_data():
     try:
         current_time = datetime.datetime.now()
         # 无论是否发生异常，都会执行这个代码块
-        print(f"{current_time}: 开始执行！")
+        # print(f"{current_time}: 开始执行！")
+        logging.info("开始执行！")
         # 好物推荐官
         getEssayListByUserId('6700000006198610')
         # 社区小助手
@@ -140,10 +150,10 @@ def fetch_and_process_data():
 
         reset_fail_count()  # 重置失败计数
     except Exception as e:
-        print(e)
+        logging.error("执行失败！")
+        logging.error(e)
         current_time = datetime.datetime.now()
         # 无论是否发生异常，都会执行这个代码块
-        print(f"{current_time}: 执行失败！")
         increment_fail_count()  # 增加失败计数
         if check_fail_count() >= 3:  # 如果连续失败次数达到3次，发送通知
             if not has_sent_failure_notification():  # 只发送一次通知
@@ -152,10 +162,11 @@ def fetch_and_process_data():
         # 如果发生异常，执行这个代码块
         pass
     finally:
-        current_time = datetime.datetime.now()
         # 无论是否发生异常，都会执行这个代码块
-        print(f"{current_time}: 执行完成！")
+        logging.info("执行完成！")
         pass
+
+
 # 标记失败通知已发送
 def mark_failure_notification_sent():
     conn = get_db_connection()
@@ -163,6 +174,8 @@ def mark_failure_notification_sent():
     cursor.execute("UPDATE errorcount SET notified = 1 WHERE id = 1")
     conn.commit()
     conn.close()
+
+
 # 检查是否已发送通知
 def has_sent_failure_notification():
     conn = get_db_connection()
@@ -171,6 +184,7 @@ def has_sent_failure_notification():
     result = cursor.fetchone()
     conn.close()
     return result and result[0] == 1
+
 
 def getEssayListByUserId(id):
     url = 'https://m.svw-volkswagen.com/community-api/group/getUserAboutInfo/getEssayListByUserId?userId=' + id + '&page=0&size=10'  # 替换为实际的接口 URL

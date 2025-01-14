@@ -22,7 +22,7 @@ def sendMsgToTeam(msg, title, desc, cardId):
                          title,
                          desc,
                          "https://m.svw-volkswagen.com/community/article/article-detail?id=" + cardId,
-                         "https://pics3.baidu.com/feed/0824ab18972bd407a9403f336648d15c0db30943.jpeg@f_auto?token=d26f7f142871542956aaa13799ba1946")
+                         "https://img0.baidu.com/it/u=3208604261,3520655236&fm=253&fmt=auto&app=138&f=JPEG?w=771&h=500")
         if send_msg_result.get('ret') != 200:
             print("发送消息失败:", send_msg_result)
             return
