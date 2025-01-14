@@ -1,0 +1,20 @@
+# 忽略所有的 .log 文件
+*.log
+
+# 忽略临时文件（如备份文件）
+*~
+
+# 忽略所有的 .DS_Store 文件（macOS 特有）
+.DS_Store
+
+# 忽略所有的 .vscode 文件夹（VSCode 配置）
+.vscode/
+
+# 忽略所有的 .idea 文件夹
+.idea/
+
+# 忽略所有的 node_modules 目录（适用于 Node.js 项目）
+node_modules/
+
+# 忽略所有的编译文件（例如 .class 文件）
+*.class
