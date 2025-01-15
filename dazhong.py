@@ -71,7 +71,8 @@ def process_data(data):
 
         # 使用 datetime 模块转换为时间字符串
         time_str = datetime.datetime.fromtimestamp(timestamp_s).strftime('%Y-%m-%d %H:%M:%S')
-        approveTime = datetime.datetime.fromtimestamp(item['approveTime'] / 1000.0).strftime('%Y-%m-%d %H:%M:%S')
+        approveT = item['approveTime'] if item['approveTime'] is not None else item['artCreateTime']
+        approveTime = datetime.datetime.fromtimestamp(approveT / 1000.0).strftime('%Y-%m-%d %H:%M:%S')
         # 检查 id 是否已处理过
         if is_id_processed(item_id):
             continue

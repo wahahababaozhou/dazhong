@@ -20,9 +20,9 @@ def sendMsgToTeam(msg, title, desc, cardId):
         return
     try:
         # 发送消息
-        send_msg_result = client.post_text(app_id, "56461690037@chatroom", "@所有人 " + msg, ats="notify@all")
+        send_msg_result = client.post_text(app_id, "34662819283@chatroom", "@所有人 " + msg, ats="notify@all")
         client.post_link(app_id,
-                         "56461690037@chatroom",
+                         "34662819283@chatroom",
                          title,
                          desc,
                          "https://m.svw-volkswagen.com/community/article/article-detail?id=" + cardId,
@@ -38,4 +38,4 @@ def sendMsgToTeam(msg, title, desc, cardId):
 
 
 if __name__ == "__main__":
-    sendMsgToTeam("123", "tt", "dd", "123")
+    sendMsgToTeam("test", "test", "test", "test")
