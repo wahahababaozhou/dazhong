@@ -71,6 +71,7 @@ def process_data(data):
 
         # 使用 datetime 模块转换为时间字符串
         time_str = datetime.datetime.fromtimestamp(timestamp_s).strftime('%Y-%m-%d %H:%M:%S')
+        approveTime = datetime.datetime.fromtimestamp(item['approveTime'] / 1000.0).strftime('%Y-%m-%d %H:%M:%S')
         # 检查 id 是否已处理过
         if is_id_processed(item_id):
             continue
@@ -81,9 +82,9 @@ def process_data(data):
             logging.info(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             # 标记该 id 为已处理
             mark_id_as_processed(item_id)
-            sendMsgToTeam(f"新V豆奖励\n文章标题: {item['artTitle']}\n发布时间: {time_str}",
+            sendMsgToTeam(f"新V豆奖励\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
                           item['artTitle'],
-                          item['artTitle'],
+                          item['feedContent'],
                           item_id)
             # 发送消息
 
