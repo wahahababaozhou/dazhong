@@ -1,0 +1,192 @@
+<head>
+    <meta charset="UTF-8"> <!-- 设置页面编码为 UTF-8 -->
+    <title>Wechat</title>
+    <script src="vue.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<style>
+    /* 设置页面背景和对齐方式 */
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+
+    }
+
+    /* 设置整个内容容器 */
+    #app {
+        max-width: 400px;;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* 按钮样式 */
+    .el-button {
+        margin: 20px;
+    }
+
+    /* 设置图片自适应 */
+    .el-image img {
+        width: 100%;
+        max-width: 250px; /* 限制图片最大宽度 */
+        height: auto;
+    }
+
+    /* 弹出消息字体大小自适应 */
+    .message {
+        font-size: 1.5em;
+        margin: 20px;
+    }
+</style>
+<body>
+<div id="app">
+    <div>
+        <el-button type="primary" @click="login">登录</el-button>
+        <el-button type="primary" @click="checkLogin">检查登录</el-button>
+        <el-button type="danger" @click="dialogVisible = true">退出登录</el-button>
+        <el-button type="primary" @click="postText">发送测试消息</el-button>
+        <el-button type="primary" @click="fetchContactsList">获取好友列表</el-button>
+    </div>
+    <div>
+        <el-dialog title="确定退出登录" :visible.sync="dialogVisible">
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="logout">确认</el-button>
+        </el-dialog>
+    </div>
+    <div>
+        <el-input
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 8}"
+                v-model="message">
+        </el-input>
+    </div>
+    <div style="margin-top: 20px">
+        <el-image
+                style="width: 200px; height: 200px"
+                :src="loginData.data.qrImgBase64"
+                fit="fill"></el-image>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: "#app",
+        data: function () {
+            return {
+                dialogVisible: false,
+                appId: "wx_UBkF_48rXEAAozpuU9JTk",
+                XGEWETOKEN: "797fcae1307149d3bbe566fa7d162c85",
+                message: "message",
+                loginData: {
+                    "ret": 200,
+                    "msg": "操作成功",
+                    "data": {
+                        "qrData": "http://weixin.qq.com/x/AZVGIZQJNAxxdjAWyJ4C",
+                        "qrImgBase64": "",
+                        "uuid": "",
+                        "appId": "wx_UBkF_48rXEAAozpuU9JTk"
+                    }
+                }
+
+            };
+        },
+
+        created() {
+        },
+        methods: {
+            login() {
+                const requestData = {
+                    appId: this.appId
+                };
+                let data = this.req(requestData, "/login/getLoginQrCode");
+                if (data.ret === 500) {
+                    this.message = data.msg;  // 微信已登录，显示提示信息
+                } else {
+                    this.message = "未登录！";  // 处理成功的情况
+                    this.loginData = data
+                }
+
+            },
+            logout() {
+                this.dialogVisible = false;
+                const requestData = {
+                    appId: this.appId
+                };
+                alert("退出登录")
+                /*let data = this.req(requestData, "/login/logout");
+                if (data.ret === 500) {
+                    this.message = data.msg;  // 微信已登录，显示提示信息
+                } else {
+                    this.message = "未登录！";  // 处理成功的情况
+                    this.loginData = data
+                }*/
+            },
+            checkLogin() {
+                const requestData = {
+                    uuid: this.loginData.data.uuid,
+                    appId: this.appId
+                };
+                let data = this.req(requestData, "/login/checkLogin");
+                if (data.ret === 500) {
+                    this.message = data.msg;
+                } else {
+                    this.message = this.message(data);  // 处理成功的情况
+                    this.loginData = data
+                }
+
+            },
+            postText() {
+                const requestData = {
+                    appId: this.appId,
+                    "toWxid": "wxid_5fcqy84vsodb21",
+                    "content": "测试消息",
+                    "ats": "notify@all"
+                };
+                let data = this.req(requestData, "/message/postText");
+                this.message = JSON.stringify(data);
+                /*if (data.ret === 500) {
+                    this.message = data.msg;  // 微信已登录，显示提示信息
+                } else {
+                    this.message = "未登录！";  // 处理成功的情况
+                }*/
+
+            },
+            fetchContactsList() {
+                const requestData = {
+                    appId: this.appId,
+                };
+                let data = this.req(requestData, "/contacts/fetchContactsList");
+                this.message = JSON.stringify(data);
+
+            },
+            req(requestData, url) {
+                let res = '';
+                const headers = {
+                    "Content-Type": "application/json",
+                    "X-GEWE-TOKEN": this.XGEWETOKEN
+                };
+
+                $.ajax({
+                    url: '/wechat-api/v2/api' + url,
+                    method: 'POST',
+                    headers: headers,
+                    async: false,  // 设置为同步请求
+                    data: JSON.stringify(requestData),
+                    contentType: 'application/json',
+                    success: (data) => {
+                        res = data;
+                    },
+                    error: (error) => {
+                        console.error('请求失败:', error);
+                        this.message = "请求失败，请稍后重试！";  // 错误提示
+                    }
+                });
+                return res;
+            }
+        }
+    });
+
+</script>

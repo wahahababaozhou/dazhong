@@ -64,6 +64,7 @@ def contains_v_dou_award(artContent):
 def process_data(data):
     for item in data:
         item_id = item['id']
+        artTitle = item['artTitle']
         art_content = item['artContent']
         artCreateTime = item['artCreateTime']
         # 将毫秒级时间戳转换为秒级时间戳
@@ -76,9 +77,13 @@ def process_data(data):
         # 检查 id 是否已处理过
         if is_id_processed(item_id):
             continue
-
+        # 计算 approveTime 距离当前时间的差值（秒数）
+        current_time = datetime.datetime.now()  # 获取当前时间
+        time_diff = current_time - datetime.datetime.fromtimestamp(approveT / 1000.0)
+        if time_diff.total_seconds() > 60 * 5:  # 如果距离当前时间超过5分钟
+            continue  # 跳过此条数据
         # 判断是否包含 V豆奖励关键字
-        if contains_v_dou_award(art_content):
+        if contains_v_dou_award(art_content) or contains_v_dou_award(artTitle):
             # print(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             logging.info(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             # 标记该 id 为已处理
