@@ -5,7 +5,7 @@ import mysql.connector
 import requests
 
 import wechat
-from gewechat import sendMsgToTeam
+from gewechat import sendDzMsgToTeam
 
 logging.basicConfig(
     filename='C:/work/code/dazhong/app.log',  # 日志文件名
@@ -82,17 +82,28 @@ def process_data(data):
         time_diff = current_time - datetime.datetime.fromtimestamp(approveT / 1000.0)
         if time_diff.total_seconds() > 60 * 5:  # 如果距离当前时间超过5分钟
             continue  # 跳过此条数据
+        activityUrl = item['activityUrl']
+        if activityUrl is not None:
+            # 答题类
+            logging.info(f"发现答题类V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
+            # 标记该 id 为已处理
+            mark_id_as_processed(item_id)
+            sendDzMsgToTeam(
+                f"新答题类V豆奖励内容\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
+                item['artTitle'],
+                item['feedContent'],
+                activityUrl)
         # 判断是否包含 V豆奖励关键字
-        if contains_v_dou_award(art_content) or contains_v_dou_award(artTitle):
+        elif contains_v_dou_award(art_content) or contains_v_dou_award(artTitle):
             # print(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             logging.info(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             # 标记该 id 为已处理
             mark_id_as_processed(item_id)
-            sendMsgToTeam(f"新V豆奖励\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
-                          item['artTitle'],
-                          item['feedContent'],
-                          item_id)
-            # 发送消息
+            sendDzMsgToTeam(
+                f"新V豆奖励\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
+                item['artTitle'],
+                item['feedContent'],
+                "https://m.svw-volkswagen.com/community/article/article-detail?id=" + item_id)
 
 
 # 检查失败次数

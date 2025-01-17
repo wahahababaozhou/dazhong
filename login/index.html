@@ -11,9 +11,6 @@
     body {
         font-family: Arial, sans-serif;
         text-align: center;
-        margin: 0;
-        padding: 0;
-
     }
 
     /* 设置整个内容容器 */
@@ -23,11 +20,6 @@
         padding: 20px;
     }
 
-    /* 按钮样式 */
-    .el-button {
-        margin: 20px;
-    }
-
     /* 设置图片自适应 */
     .el-image img {
         width: 100%;
@@ -35,20 +27,18 @@
         height: auto;
     }
 
-    /* 弹出消息字体大小自适应 */
-    .message {
-        font-size: 1.5em;
-        margin: 20px;
-    }
 </style>
 <body>
 <div id="app">
-    <div>
-        <el-button type="primary" @click="login">登录</el-button>
-        <el-button type="primary" @click="checkLogin">检查登录</el-button>
-        <el-button type="danger" @click="dialogVisible = true">退出登录</el-button>
-        <el-button type="primary" @click="postText">发送测试消息</el-button>
-        <el-button type="primary" @click="fetchContactsList">获取好友列表</el-button>
+    <div style="">
+        <el-button-group>
+            <el-button type="success" @click="login" size="mini">登录</el-button>
+            <el-button type="primary" @click="checkLogin" size="mini" plain>检查登录</el-button>
+            <el-button type="success" @click="postText" size="mini" plain>发送消息</el-button>
+            <el-button type="" @click="fetchContactsList" size="mini" plain>好友列表</el-button>
+            <el-button type="danger" @click="dialogVisible = true" size="mini">登出</el-button>
+
+        </el-button-group>
     </div>
     <div>
         <el-dialog title="确定退出登录" :visible.sync="dialogVisible">
@@ -56,14 +46,15 @@
             <el-button type="primary" @click="logout">确认</el-button>
         </el-dialog>
     </div>
-    <div>
+    <div style="margin: 25px">
         <el-input
                 type="textarea"
-                :autosize="{ minRows: 2, maxRows: 8}"
+                :autosize="{ minRows: 4, maxRows: 15}"
                 v-model="message">
         </el-input>
     </div>
-    <div style="margin-top: 20px">
+
+    <div style="margin-top: 20px;">
         <el-image
                 style="width: 200px; height: 200px"
                 :src="loginData.data.qrImgBase64"
@@ -115,14 +106,13 @@
                 const requestData = {
                     appId: this.appId
                 };
-                alert("退出登录")
-                /*let data = this.req(requestData, "/login/logout");
+                let data = this.req(requestData, "/login/logout");
                 if (data.ret === 500) {
                     this.message = data.msg;  // 微信已登录，显示提示信息
                 } else {
                     this.message = "未登录！";  // 处理成功的情况
                     this.loginData = data
-                }*/
+                }
             },
             checkLogin() {
                 const requestData = {

@@ -2,30 +2,53 @@ from gewechat_client import GewechatClient
 
 import wechat
 
+# 配置参数
+base_url = "http://localhost:2531/v2/api"
+token = "797fcae1307149d3bbe566fa7d162c85"
+appid = "wx_UBkF_48rXEAAozpuU9JTk"
+uuid = "oY3kAuyN8-Foyn5v5Ha7"
 
-def sendMsgToTeam(msg, title, desc, cardId):
-    # 配置参数
-    base_url = "http://localhost:2531/v2/api"
-    token = "797fcae1307149d3bbe566fa7d162c85"
-    app_id = "wx_UBkF_48rXEAAozpuU9JTk"
-    uuid = "oY3kAuyN8-Foyn5v5Ha7"
 
+def syncGeweStatus():
     # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
-
     # 登录, 自动创建二维码，扫码后自动登录
-    app_id, error_msg = client.login(app_id=app_id)
+    app_id, error_msg = client.login(appid)
     if error_msg:
         print("登录失败")
         return
     try:
         # 发送消息
-        send_msg_result = client.post_text(app_id, "34662819283@chatroom", "@所有人 " + msg, ats="notify@all")
+        send_msg_result = client.get_profile(app_id)
+        if send_msg_result.get('ret') != 200:
+            print("获取个人信息失败:", send_msg_result)
+            wechat.sendtext(f"gewe获取个人信息失败：{str(send_msg_result)}")
+            return
+        print("gewe获取个人信息失败:", send_msg_result)
+    except Exception as e:
+        print("获取个人信息失败:", str(e))
+        wechat.sendtext(f"gewe获取个人信息失败：{str(e)}")
+
+
+def sendDzMsgToTeam(msg, title, desc, url):
+    # 创建 GewechatClient 实例
+    client = GewechatClient(base_url, token)
+    # 登录, 自动创建二维码，扫码后自动登录
+    app_id, error_msg = client.login(appid)
+    if error_msg:
+        print("登录失败")
+        return
+    try:
+        # 发送消息
+        # 薅豆子群 34662819283@chatroom
+        # yq wx  wxid_5fcqy84vsodb21
+        userid = "34662819283@chatroom"
+        send_msg_result = client.post_text(app_id, userid, "@所有人 " + msg, ats="notify@all")
         client.post_link(app_id,
-                         "34662819283@chatroom",
+                         userid,
                          title,
                          desc,
-                         "https://m.svw-volkswagen.com/community/article/article-detail?id=" + cardId,
+                         url,
                          "https://img0.baidu.com/it/u=3208604261,3520655236&fm=253&fmt=auto&app=138&f=JPEG?w=771&h=500")
         if send_msg_result.get('ret') != 200:
             print("发送消息失败:", send_msg_result)
@@ -38,4 +61,4 @@ def sendMsgToTeam(msg, title, desc, cardId):
 
 
 if __name__ == "__main__":
-    sendMsgToTeam("test", "test", "test", "test")
+    sendDzMsgToTeam("test", "test", "test", "https://m.svw-volkswagen.com/community/article/article-detail?id=")
