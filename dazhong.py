@@ -60,6 +60,10 @@ def contains_v_dou_award(artContent):
     return 'V豆奖励' in artContent or 'V豆活动' in artContent or '0V豆' in artContent
 
 
+def contains_v_dou_award_title(title):
+    return 'V豆奖励' in title or 'V豆活动' in title or 'V豆' in title
+
+
 # 处理接口返回的数据
 def process_data(data):
     for item in data:
@@ -92,9 +96,10 @@ def process_data(data):
                 f"新答题类V豆奖励内容\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
                 item['artTitle'],
                 item['feedContent'],
+                "https://m.svw-volkswagen.com/community/article/article-detail?id=" + item_id,
                 activityUrl)
         # 判断是否包含 V豆奖励关键字
-        elif contains_v_dou_award(art_content) or contains_v_dou_award(artTitle):
+        elif contains_v_dou_award(art_content) or contains_v_dou_award_title(artTitle):
             # print(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             logging.info(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             # 标记该 id 为已处理

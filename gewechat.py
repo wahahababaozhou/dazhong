@@ -30,7 +30,7 @@ def syncGeweStatus():
         wechat.sendtext(f"gewe获取个人信息失败：{str(e)}")
 
 
-def sendDzMsgToTeam(msg, title, desc, url):
+def sendDzMsgToTeam(msg, title, desc, url, activityUrl=""):
     # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
     # 登录, 自动创建二维码，扫码后自动登录
@@ -43,6 +43,7 @@ def sendDzMsgToTeam(msg, title, desc, url):
         # 薅豆子群 34662819283@chatroom
         # yq wx  wxid_5fcqy84vsodb21
         userid = "34662819283@chatroom"
+        # userid = "wxid_5fcqy84vsodb21"
         send_msg_result = client.post_text(app_id, userid, "@所有人 " + msg, ats="notify@all")
         client.post_link(app_id,
                          userid,
@@ -50,6 +51,13 @@ def sendDzMsgToTeam(msg, title, desc, url):
                          desc,
                          url,
                          "https://img0.baidu.com/it/u=3208604261,3520655236&fm=253&fmt=auto&app=138&f=JPEG?w=771&h=500")
+        if activityUrl:
+            client.post_link(app_id,
+                             userid,
+                             title,
+                             "--直接答题链接--" + desc,
+                             activityUrl,
+                             "https://img0.baidu.com/it/u=3208604261,3520655236&fm=253&fmt=auto&app=138&f=JPEG?w=771&h=500")
         if send_msg_result.get('ret') != 200:
             print("发送消息失败:", send_msg_result)
             wechat.sendtext(f"gewe发送微信群消息失败：{send_msg_result}")
@@ -61,4 +69,5 @@ def sendDzMsgToTeam(msg, title, desc, url):
 
 
 if __name__ == "__main__":
-    sendDzMsgToTeam("test", "test", "test", "https://m.svw-volkswagen.com/community/article/article-detail?id=")
+    sendDzMsgToTeam("test", "test", "test", "https://m.svw-volkswagen.com/community/article/article-detail?id=",
+                    "https://m.svw-volkswagen.com/community/article/article-detail?id=")
