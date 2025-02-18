@@ -37,7 +37,6 @@
             <el-button type="success" @click="postText" size="mini" plain>发送消息</el-button>
             <el-button type="" @click="fetchContactsList" size="mini" plain>好友列表</el-button>
             <el-button type="danger" @click="dialogVisible = true" size="mini">登出</el-button>
-
         </el-button-group>
     </div>
     <div>
@@ -110,9 +109,10 @@
                 if (data.ret === 500) {
                     this.message = data.msg;  // 微信已登录，显示提示信息
                 } else {
-                    this.message = "未登录！";  // 处理成功的情况
-                    this.loginData = data
+                    this.message = "退出登录成功！";  // 处理成功的情况
+                    // this.loginData = data
                 }
+                this.dialogVisible = false;
             },
             checkLogin() {
                 const requestData = {

@@ -24,7 +24,7 @@ def syncGeweStatus():
             print("获取个人信息失败:", send_msg_result)
             wechat.sendtext(f"gewe获取个人信息失败：{str(send_msg_result)}")
             return
-        print("gewe获取个人信息失败:", send_msg_result)
+        print("gewe获取个人信息成功:", send_msg_result)
     except Exception as e:
         print("获取个人信息失败:", str(e))
         wechat.sendtext(f"gewe获取个人信息失败：{str(e)}")
