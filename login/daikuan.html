@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银行存款计算</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .outer {
+            max-width: 400px;
+            margin: 0 auto; /* 水平居中 */
+            text-align: left; /* 文本左对齐 */
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between; /* 让label和input分布在两边 */
+            align-items: center; /* 垂直居中对齐 */
+        }
+
+        label {
+            width: 180px;
+            font-size: 1.2em;
+            text-align: right;
+        }
+
+        input {
+            padding: 5px;
+            font-size: 1em;
+            width: 250px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            font-family: monospace;
+            margin-top: 20px;
+            white-space: pre-wrap; /* 保持换行格式 */
+        }
+    </style>
+</head>
+<body>
+<div class="outer">
+    <h1>银行存款计算</h1>
+
+    <div class="input-group">
+        <label for="initialBalance">初始银行存款:</label>
+        <input type="number" id="initialBalance" placeholder="请输入初始存款" value="1000000">
+    </div>
+
+    <div class="input-group">
+        <label for="annualSalary">年薪:</label>
+        <input type="number" id="annualSalary" placeholder="请输入年薪" value="200000">
+    </div>
+
+    <div class="input-group">
+        <label for="annualConsumption">年消费:</label>
+        <input type="number" id="annualConsumption" placeholder="请输入年消费" value="80000">
+    </div>
+
+    <!--<div class="input-group">
+        <label for="annualSavings">每年存款:</label>
+        <input type="number" id="annualSavings" placeholder="请输入每年存款" value="120000">
+    </div>-->
+
+    <div class="input-group">
+        <label for="interestRate">年利率 (%):</label>
+        <input type="number" id="interestRate" placeholder="请输入年利率" value="2">
+    </div>
+
+    <div class="input-group">
+        <label for="daikuan">年还款金额:</label>
+        <input type="number" id="daikuan" placeholder="请输入年还款金额" value="30000">
+    </div>
+    <div class="input-group">
+        <label for="years">计算年份:</label>
+        <input type="number" id="years" placeholder="请输入计算的年数" value="10">
+    </div>
+
+    <button onclick="calculate()">计算</button>
+
+    <h2>计算结果</h2>
+    <pre id="output"></pre>
+
+</div>
+
+</body>
+
+<script>
+    function calculate() {
+        // 从输入框获取用户输入的值
+        const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+        const annualSalary = parseFloat(document.getElementById('annualSalary').value);
+        const annualConsumption = parseFloat(document.getElementById('annualConsumption').value);
+        const annualSavings = annualSalary - annualConsumption//parseFloat(document.getElementById('annualSavings').value);
+        const interestRate = parseFloat(document.getElementById('interestRate').value) / 100; // 转换为小数
+        const years = parseInt(document.getElementById('years').value);
+        const daikuan = parseInt(document.getElementById('daikuan').value);
+
+        // 模拟计算未来几年的银行存款余额和利息收益
+        let balance = initialBalance;  // 初始存款
+        let output = `年存款:${(annualSavings / 10000).toFixed(2)} 万元\n\n\n`;  // 用于存储输出内容
+
+        for (let year = 1; year <= years; year++) {
+            // 每年存款并计算利息
+            const interest = balance * interestRate;  // 计算本年的利息
+            balance += annualSavings + interest - daikuan;  // 存款加利息-还款
+
+            // 添加输出内容
+            output += `第${year}年:\n`;
+            output += `  银行存款余额: ${(balance / 10000).toFixed(2)} 万元\n`;
+            output += `  本年净增值: ${((annualSavings + interest - daikuan) / 10000).toFixed(2)} 万元\n`;
+            output += `  本年利息: ${(interest / 10000).toFixed(2)} 万元\n`;
+            output += "-".repeat(30) + "\n";  // 分隔线
+        }
+
+        // 显示结果
+        document.getElementById('output').textContent = output;
+    }
+</script>
+</html>

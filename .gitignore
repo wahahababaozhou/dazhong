@@ -18,3 +18,4 @@ node_modules/
 
 # 忽略所有的编译文件（例如 .class 文件）
 *.class
+/cookies/

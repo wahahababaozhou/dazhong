@@ -1,6 +1,7 @@
 from gewechat_client import GewechatClient
 
 import wechat
+from autoAnswer.main import run
 
 # 配置参数
 base_url = "http://localhost:2531/v2/api"
@@ -30,7 +31,7 @@ def syncGeweStatus():
         wechat.sendtext(f"gewe获取个人信息失败：{str(e)}")
 
 
-def sendDzMsgToTeam(msg, title, desc, url, activityUrl=""):
+def sendDzMsgToTeam(msg, title, desc, url, activityUrl="", item_id=""):
     # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
     # 登录, 自动创建二维码，扫码后自动登录
@@ -58,6 +59,12 @@ def sendDzMsgToTeam(msg, title, desc, url, activityUrl=""):
                              "--直接答题链接--" + desc,
                              activityUrl,
                              "https://img0.baidu.com/it/u=3208604261,3520655236&fm=253&fmt=auto&app=138&f=JPEG?w=771&h=500")
+            # 尝试获取答案
+            # 调用run方法，传入activityUrl和item_id
+            answerTxt = run(activityUrl, item_id)
+            if answerTxt:
+                client.post_text(app_id, userid, answerTxt)
+
         if send_msg_result.get('ret') != 200:
             print("发送消息失败:", send_msg_result)
             wechat.sendtext(f"gewe发送微信群消息失败：{send_msg_result}")
