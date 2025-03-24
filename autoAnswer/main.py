@@ -5,9 +5,11 @@ import mysql.connector
 from playwright.async_api import async_playwright
 from selenium.webdriver.common.by import By
 
+import wechat
 from conf import BASE_DIR, LOCAL_CHROME_PATH, HEADLESS, DB_CONFIG
 from utils.base_social_media import set_init_script
 import json
+from urllib.parse import urlparse
 
 
 def get_db_connection():
@@ -31,6 +33,56 @@ async def init_dazhong_cookie(account_file, url1):
         await page.goto(url)
         await page.pause()
         await context.storage_state(path=account_file)
+
+
+async def keep_login(account_file, _url):
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(
+            headless=False,  # 设置为 False 以便观察刷新效果
+            executable_path=LOCAL_CHROME_PATH  # 确保此路径正确
+        )
+        context = await browser.new_context(storage_state=account_file)
+        context = await set_init_script(context)  # 如果需要，绕过检测
+
+        page = await context.new_page()
+        await page.set_viewport_size({'width': 1280, 'height': 800})
+
+        # 打开页面
+        await page.goto(_url)
+        await page.wait_for_load_state('load')
+
+        print("页面已加载，开始定期刷新...")
+
+        while True:
+            await asyncio.sleep(30)  # 每 30 秒执行一次
+            try:
+                current_url = page.url
+                print(f"当前页面的 URL 是: {current_url}")
+
+                # 使用 urllib 提取域名
+                parsed_url = urlparse(current_url)
+                domain = parsed_url.netloc
+                if domain == "pass.svw-volkswagen.com":
+                    print(f"掉登录了，重新登录！")
+                    wechat.sendtext(f"大众账号： 掉登录了，需要重新登录！")
+                    return
+                # 点击“个人中心”按钮
+                personal_center_selector = "a:text('我的个人中心')"  # 请替换成实际的选择器
+                await page.click(personal_center_selector)
+                print("已点击‘个人中心’按钮")
+                await asyncio.sleep(2)  # 等待页面加载
+
+                # 点击“我的订单”按钮
+                my_orders_selector = "a:text('我的订单')"  # 请替换成实际的选择器
+                await page.click(my_orders_selector)
+                print("已点击‘我的订单’按钮")
+                try:
+                    print("✅ 更新cookie!")
+                    await context.storage_state(path=f"{account_file}")
+                except Exception as e:
+                    print(f"❌ Page load failed: {e}")
+            except Exception as e:
+                print(f"点击时发生错误: {e}")
 
 
 async def autoAnswer(account_file, url):
@@ -167,13 +219,19 @@ def run(surveyurl, item_id):
         return formatted_result
     else:
         return None
-def timer():
-    url = "https://m.svw-volkswagen.com/marketing/survey/questionAnswer/index.html?surveyId=1900016874458370050"
-    run(url, "1420491057860739072")
-if __name__ == '__main__':
-    url = "https://m.svw-volkswagen.com/marketing/survey/questionAnswer/index.html?surveyId=1900016874458370050"
-    run(url, "1420491057860739072")
 
+
+def timer():
+    url = "https://mall.svw-volkswagen.com/user"
+    account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
+    asyncio.run(keep_login(account_file, url))
+
+
+if __name__ == '__main__':
+    # url = "https://m.svw-volkswagen.com/marketing/survey/questionAnswer/index.html?surveyId=1900016874458370050"
+    url = "https://mall.svw-volkswagen.com/user"
+    # run(url, "1420491057860739072")
+    timer()
     # account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
     # auto = asyncio.run(init_dazhong_cookie(str(account_file), url))
     # getAnswer = asyncio.run(extractAnswers(str(account_file), url))
