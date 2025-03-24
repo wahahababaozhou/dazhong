@@ -16,6 +16,26 @@ def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
 
+def updataAnswer(id, answer, answerTxt):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE processed_ids SET answer = %s, answerTxt = %s WHERE id = %s",
+                   (answer, answerTxt, id))
+    conn.commit()
+    conn.close()
+
+
+def query_answer_by_id(_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT answer,activityUrl FROM processed_ids WHERE id = %s", (_id,))
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        return result[0], result[1]
+    return None, None
+
+
 async def init_dazhong_cookie(account_file, url1):
     url = url1 + "&processKey=MF17712895"
     async with async_playwright() as playwright:
@@ -85,7 +105,62 @@ async def keep_login(account_file, _url):
                 print(f"点击时发生错误: {e}")
 
 
-async def autoAnswer(account_file, url):
+async def auto_correct_answer(account_file, _id):
+    # 读取 JSON 文件
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(
+            headless=False,  # 设置为 False 以便观察刷新效果
+            executable_path=LOCAL_CHROME_PATH  # 确保此路径正确
+        )
+        context = await browser.new_context(storage_state=account_file)
+        context = await set_init_script(context)  # 如果需要，绕过检测
+
+        page = await context.new_page()
+        await page.set_viewport_size({'width': 1280, 'height': 800})
+
+        answers, _url = query_answer_by_id(_id)
+        if answers is None:
+            print("未查询到答案")
+            return
+        # 打开页面
+        await page.goto(_url)
+        # 等待页面加载
+        await page.wait_for_timeout(3000)  # 3秒等待
+        await page.wait_for_load_state('load')
+        await page.wait_for_load_state("networkidle")
+        # 获取所有问题区域
+        questions = await page.query_selector_all(".voteBg")
+        for answer in answers:
+            question_index = answer[0] - 1  # 题目序号，转换为索引（从0开始）
+            selected_options = answer[1]  # 需要点击的选项列表
+
+            if 0 <= question_index < len(questions):
+                question_element = questions[question_index]
+                options = await question_element.query_selector_all(".optionItem")
+
+                # 遍历答案中指定的选项序号，点击对应选项
+                for option_index in selected_options:
+                    if 0 <= option_index - 1 < len(options):  # 选项索引转换
+                        await options[option_index - 1].click()
+                        time.sleep(1)  # 模拟用户操作间隔
+        print("所有答案已自动提交")
+        time.sleep(1)  # 等待一秒，防止点击过快导致页面未响应
+        bottom_bg = await page.query_selector(".bottomBg")
+        if bottom_bg:
+            print("✅ 确认按钮存在！")
+            await bottom_bg.click()  # 执行点击操作
+            time.sleep(0.5)  # 等待一秒，防止点击过快导致页面未响应
+            confirm = await page.query_selector(".van-dialog__confirm")
+            if confirm:
+                # 多选只选择一个的情况
+                print("✅ 确定按钮存在！")
+                time.sleep(0.5)  # 等待一秒，防止点击过快导致页面未响应
+                await confirm.click()  # 执行点击操作
+        else:
+            print("❌ 确认按钮不存在！")
+
+
+async def auto_answer_first(account_file, _url):
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(
             headless=HEADLESS,
@@ -98,7 +173,7 @@ async def autoAnswer(account_file, url):
         await page.set_viewport_size({'width': 1280, 'height': 800})
 
         # 打开答题页面
-        await page.goto(url)
+        await page.goto(_url)
         # 等待页面加载
         await page.wait_for_timeout(3000)  # 3秒等待
         # 获取所有问题区域
@@ -137,13 +212,13 @@ async def autoAnswer(account_file, url):
             print(f"❌ Page load failed: {e}")
 
 
-async def extractAnswers(accountFile, url):
+async def get_answer(account_file, _url):
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(
             headless=HEADLESS,
             executable_path=LOCAL_CHROME_PATH  # Ensure this path is correct
         )
-        context = await browser.new_context(storage_state=accountFile)
+        context = await browser.new_context(storage_state=account_file)
         context = await set_init_script(context)  # Bypass detection if needed
 
         page = await context.new_page()
@@ -177,14 +252,14 @@ async def extractAnswers(accountFile, url):
 
         page.on("response", lambda response: asyncio.create_task(handle_response(response)))
 
-        await page.goto(url)
+        await page.goto(_url)
         await page.wait_for_load_state("load")
         await page.wait_for_load_state("networkidle")
 
         try:
             # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
             print("✅ 更新cookie!")
-            await context.storage_state(path=f"{accountFile}")
+            await context.storage_state(path=f"{account_file}")
         except Exception as e:
             print(f"❌ Page load failed: {e}")
 
@@ -193,21 +268,12 @@ async def extractAnswers(accountFile, url):
         return correct_answers  # Return the correct answers as a result
 
 
-def updataAnswer(id, answer, answerTxt):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE processed_ids SET answer = %s, answerTxt = %s WHERE id = %s",
-                   (answer, answerTxt, id))
-    conn.commit()
-    conn.close()
-
-
 def run(surveyurl, item_id):
     account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
     url = surveyurl + "&processKey=MF17712895"
     # url = "https://m.svw-volkswagen.com/marketing/survey/questionAnswer/index.html?surveyId=1900016874458370050&n=n"
-    asyncio.run(autoAnswer(str(account_file), url))
-    getAnswer = asyncio.run(extractAnswers(str(account_file), url))
+    asyncio.run(auto_answer_first(str(account_file), url))
+    getAnswer = asyncio.run(get_answer(str(account_file), url))
 
     formatted_result = ' '.join([f'问题{item[0]}，正确答案 {", ".join(map(str, item[1]))}；' for item in getAnswer])
 
