@@ -1,15 +1,15 @@
 import asyncio
+import json
 import time
 from pathlib import Path
+from urllib.parse import urlparse
+
 import mysql.connector
 from playwright.async_api import async_playwright
-from selenium.webdriver.common.by import By
 
 import wechat
 from conf import BASE_DIR, LOCAL_CHROME_PATH, HEADLESS, DB_CONFIG
 from utils.base_social_media import set_init_script
-import json
-from urllib.parse import urlparse
 
 
 def get_db_connection():
@@ -222,9 +222,9 @@ def run(surveyurl, item_id):
 
 
 def timer():
-    url = "https://mall.svw-volkswagen.com/user"
+    url1 = "https://mall.svw-volkswagen.com/user"
     account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
-    asyncio.run(keep_login(account_file, url))
+    asyncio.run(keep_login(account_file, url1))
 
 
 if __name__ == '__main__':
