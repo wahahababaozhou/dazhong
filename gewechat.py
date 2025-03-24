@@ -1,7 +1,7 @@
 from gewechat_client import GewechatClient
 
 import wechat
-from autoAnswer.main import run
+from autoAnswer import run
 
 # 配置参数
 base_url = "http://localhost:2531/v2/api"

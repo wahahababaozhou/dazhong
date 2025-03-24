@@ -1,12 +1,10 @@
-import schedule
 import time
 
-from autoAnswer.main import timer
+import schedule
+
 from dazhong import fetch_and_process_data
 from gewechat import syncGeweStatus
 
-# 保持大众账号的登录状态
-timer()
 # 设置任务每隔1分钟执行一次
 # 获取最新的文章
 schedule.every(1).minutes.do(fetch_and_process_data)
