@@ -42,6 +42,7 @@ def sendDzMsgToTeam(msg, title, desc, url, activityUrl="", item_id=""):
     try:
         # 发送消息
         # 薅豆子群 34662819283@chatroom
+        # 测试群 56461690037@chatroom
         # yq wx  wxid_5fcqy84vsodb21
         userid = "34662819283@chatroom"
         # userid = "wxid_5fcqy84vsodb21"

@@ -79,7 +79,7 @@ def process_data(data):
         # 计算 approveTime 距离当前时间的差值（秒数）
         current_time = datetime.datetime.now()  # 获取当前时间
         time_diff = current_time - datetime.datetime.fromtimestamp(approveT / 1000.0)
-        if time_diff.total_seconds() > 60 * 5:  # 如果距离当前时间超过5分钟
+        if time_diff.total_seconds() > 60 * 10:  # 如果距离当前时间超过10分钟
             continue  # 跳过此条数据
         activityUrl = item['activityUrl']
         if activityUrl is not None:

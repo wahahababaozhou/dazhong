@@ -46,7 +46,12 @@ async def init_dazhong_cookie(account_file, url1):
             'headless': HEADLESS,  # Set headless option here
         }
         browser = await playwright.chromium.launch(**options)
-        context = await browser.new_context()
+        # 使用 iPhone 14 Pro Max 进行设备仿真
+        iPhone = playwright.devices["iPhone 14 Pro Max"]
+        context = await browser.new_context(
+            **iPhone,  # 直接传入设备配置
+            storage_state=account_file  # 保持登录状态
+        )
         context = await set_init_script(context)
         page = await context.new_page()
         # https://m-pass.svw-volkswagen.com/login
@@ -61,24 +66,34 @@ async def keep_login(account_file, _url):
             headless=False,  # 设置为 False 以便观察刷新效果
             executable_path=LOCAL_CHROME_PATH  # 确保此路径正确
         )
-        context = await browser.new_context(storage_state=account_file)
-        context = await set_init_script(context)  # 如果需要，绕过检测
+        # 使用 iPhone 14 Pro Max 进行设备仿真
+        iPhone = playwright.devices["iPhone 14 Pro Max"]
+        context = await browser.new_context(
+            **iPhone,  # 直接传入设备配置
+            storage_state=account_file  # 保持登录状态
+        )
+        # context = await browser.new_context(storage_state=account_file)
+        # context = await set_init_script(context)  # 如果需要，绕过检测
 
         page = await context.new_page()
-        await page.set_viewport_size({'width': 1280, 'height': 800})
-
-        # 打开页面
-        await page.goto(_url)
-        await page.wait_for_load_state('load')
 
         print("页面已加载，开始定期刷新...")
 
         while True:
-            await asyncio.sleep(30)  # 每 30 秒执行一次
+            # 打开页面
+            await page.goto(_url)
+            await page.wait_for_load_state('load')
+            await page.wait_for_load_state("networkidle")
+            # await asyncio.sleep(5)  # 每 30 秒执行一次
+            await page.goto('https://m-club.svw-volkswagen.com/pointEvents')
+            await page.wait_for_load_state('load')
+            await page.wait_for_load_state("networkidle")
             try:
+                # 打开页面
+                # await page.goto(_url)
+                # await page.wait_for_load_state('load')
+                await asyncio.sleep(20)  # 每 20 秒执行一次
                 current_url = page.url
-                print(f"当前页面的 URL 是: {current_url}")
-
                 # 使用 urllib 提取域名
                 parsed_url = urlparse(current_url)
                 domain = parsed_url.netloc
@@ -86,16 +101,16 @@ async def keep_login(account_file, _url):
                     print(f"掉登录了，重新登录！")
                     wechat.sendtext(f"大众账号： 掉登录了，需要重新登录！")
                     return
-                # 点击“个人中心”按钮
-                personal_center_selector = "a:text('我的个人中心')"  # 请替换成实际的选择器
-                await page.click(personal_center_selector)
-                print("已点击‘个人中心’按钮")
-                await asyncio.sleep(2)  # 等待页面加载
-
-                # 点击“我的订单”按钮
-                my_orders_selector = "a:text('我的订单')"  # 请替换成实际的选择器
-                await page.click(my_orders_selector)
-                print("已点击‘我的订单’按钮")
+                # # 点击“个人中心”按钮
+                # personal_center_selector = "a:text('我的个人中心')"  # 请替换成实际的选择器
+                # await page.click(personal_center_selector)
+                # print("已点击‘个人中心’按钮")
+                # await asyncio.sleep(2)  # 等待页面加载
+                #
+                # # 点击“我的订单”按钮
+                # my_orders_selector = "a:text('我的订单')"  # 请替换成实际的选择器
+                # await page.click(my_orders_selector)
+                # print("已点击‘我的订单’按钮")
                 try:
                     print("✅ 更新cookie!")
                     await context.storage_state(path=f"{account_file}")
@@ -112,11 +127,15 @@ async def auto_correct_answer(account_file, _id):
             headless=False,  # 设置为 False 以便观察刷新效果
             executable_path=LOCAL_CHROME_PATH  # 确保此路径正确
         )
-        context = await browser.new_context(storage_state=account_file)
+        # 使用 iPhone 14 Pro Max 进行设备仿真
+        iPhone = playwright.devices["iPhone 14 Pro Max"]
+        context = await browser.new_context(
+            **iPhone,  # 直接传入设备配置
+            storage_state=account_file  # 保持登录状态
+        )
         context = await set_init_script(context)  # 如果需要，绕过检测
 
         page = await context.new_page()
-        await page.set_viewport_size({'width': 1280, 'height': 800})
 
         answers, _url = query_answer_by_id(_id)
         if answers is None:
@@ -166,11 +185,15 @@ async def auto_answer_first(account_file, _url):
             headless=HEADLESS,
             executable_path=LOCAL_CHROME_PATH  # Ensure this path is correct
         )
-        context = await browser.new_context(storage_state=account_file)
+        # 使用 iPhone 14 Pro Max 进行设备仿真
+        iPhone = playwright.devices["iPhone 14 Pro Max"]
+        context = await browser.new_context(
+            **iPhone,  # 直接传入设备配置
+            storage_state=account_file  # 保持登录状态
+        )
         context = await set_init_script(context)  # Bypass detection if needed
 
         page = await context.new_page()
-        await page.set_viewport_size({'width': 1280, 'height': 800})
 
         # 打开答题页面
         await page.goto(_url)
@@ -204,12 +227,12 @@ async def auto_answer_first(account_file, _url):
         else:
             print("❌ 确认按钮不存在！")
 
-        try:
-            # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
-            print("✅ 更新cookie!")
-            await context.storage_state(path=f"{account_file}")
-        except Exception as e:
-            print(f"❌ Page load failed: {e}")
+        # try:
+        #     # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
+        #     print("✅ 更新cookie!")
+        #     await context.storage_state(path=f"{account_file}")
+        # except Exception as e:
+        #     print(f"❌ Page load failed: {e}")
 
 
 async def get_answer(account_file, _url):
@@ -218,50 +241,63 @@ async def get_answer(account_file, _url):
             headless=HEADLESS,
             executable_path=LOCAL_CHROME_PATH  # Ensure this path is correct
         )
-        context = await browser.new_context(storage_state=account_file)
+        # 使用 iPhone 14 Pro Max 进行设备仿真
+        iPhone = playwright.devices["iPhone 14 Pro Max"]
+        context = await browser.new_context(
+            **iPhone,  # 直接传入设备配置
+            storage_state=account_file  # 保持登录状态
+        )
         context = await set_init_script(context)  # Bypass detection if needed
 
         page = await context.new_page()
-        await page.set_viewport_size({'width': 1280, 'height': 800})
 
         TARGET_PREFIX = "https://m.svw-volkswagen.com/ss-survey-adapter/api/survey/"
 
         correct_answers = []  # List to store the correct answers
 
         async def handle_response(response):
-            if response.url.startswith(TARGET_PREFIX):  # Match the specified prefix
+            if response.url.startswith(TARGET_PREFIX):
                 try:
                     if "application/json" in response.headers.get("content-type", ""):
                         json_data = await response.json()
-                        print(f"✅ JSON Response: {response.url}\n📦 Data: {json_data}\n")
+                        print(f"✅ JSON Response: {json_data}")
 
                         # Extract correct answers
                         if 'data' in json_data and 'surveyQuestionInfoList' in json_data['data']:
                             for idx, question in enumerate(json_data['data']['surveyQuestionInfoList'], start=1):
-                                correct_answer = [
-                                    option['optionSeq']
-                                    for option in question.get('surveyOptionInfoList', [])
-                                    if option.get('boolCorrectOption') is True
-                                ]
-                                if correct_answer:
-                                    correct_answers.append(
-                                        (idx, correct_answer))  # Store question index and correct options
-                                    print(f"问题{idx}，正确答案 {', '.join(map(str, correct_answer))}；")
-                except Exception as e:
-                    print(f"⚠️ Failed to parse JSON: {e}")
+                                options = question.get('surveyOptionInfoList', [])
 
-        page.on("response", lambda response: asyncio.create_task(handle_response(response)))
+                                # 提取所有 `boolCorrectOption=True` 的选项
+                                correct_option_seqs = [
+                                    option['optionSeq'] for option in options if option.get('boolCorrectOption') is True
+                                ]
+
+                                # 如果 `boolCorrectOption=True` 存在，则使用它
+                                if correct_option_seqs:
+                                    correct_answers.append((idx, correct_option_seqs))
+                                    print(f"问题{idx}，正确答案 {', '.join(map(str, correct_option_seqs))}；")
+                                else:
+                                    # 如果没有正确答案，则选择第一个选项
+                                    if options:
+                                        first_option_seq = options[0].get('optionSeq')
+                                        correct_answers.append((idx, [first_option_seq]))
+                                        print(f"问题{idx}，没有正确答案标记，默认选第一个选项 {first_option_seq}；")
+                except Exception as e:
+                    print(f"⚠️ JSON 解析失败: {e}")
+
+            # 绑定事件监听
+        page.on("response", handle_response)
 
         await page.goto(_url)
         await page.wait_for_load_state("load")
         await page.wait_for_load_state("networkidle")
 
-        try:
-            # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
-            print("✅ 更新cookie!")
-            await context.storage_state(path=f"{account_file}")
-        except Exception as e:
-            print(f"❌ Page load failed: {e}")
+        # try:
+        #     # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
+        #     print("✅ 更新cookie!")
+        #     await context.storage_state(path=f"{account_file}")
+        # except Exception as e:
+        #     print(f"❌ Page load failed: {e}")
 
         await browser.close()
 
@@ -288,7 +324,7 @@ def run(surveyurl, item_id):
 
 
 def timer():
-    url1 = "https://mall.svw-volkswagen.com/user"
+    url1 = "https://m.svw-volkswagen.com/mall/myLogin"
     account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
     asyncio.run(keep_login(account_file, url1))
 
