@@ -72,45 +72,39 @@ async def keep_login(account_file, _url):
             **iPhone,  # 直接传入设备配置
             storage_state=account_file  # 保持登录状态
         )
-        # context = await browser.new_context(storage_state=account_file)
-        # context = await set_init_script(context)  # 如果需要，绕过检测
 
         page = await context.new_page()
 
         print("页面已加载，开始定期刷新...")
 
+        await page.goto(_url)
+        await page.wait_for_load_state('load')
+        await page.wait_for_load_state("networkidle")
         while True:
-            # 打开页面
-            await page.goto(_url)
-            await page.wait_for_load_state('load')
-            await page.wait_for_load_state("networkidle")
-            # await asyncio.sleep(5)  # 每 30 秒执行一次
-            await page.goto('https://m-club.svw-volkswagen.com/pointEvents')
-            await page.wait_for_load_state('load')
-            await page.wait_for_load_state("networkidle")
+
             try:
-                # 打开页面
-                # await page.goto(_url)
-                # await page.wait_for_load_state('load')
-                await asyncio.sleep(20)  # 每 20 秒执行一次
+                await asyncio.sleep(20)  # 等待20秒
                 current_url = page.url
                 # 使用 urllib 提取域名
                 parsed_url = urlparse(current_url)
                 domain = parsed_url.netloc
-                if domain == "pass.svw-volkswagen.com":
+                if domain == "m-pass.svw-volkswagen.com":
                     print(f"掉登录了，重新登录！")
                     wechat.sendtext(f"大众账号： 掉登录了，需要重新登录！")
                     return
-                # # 点击“个人中心”按钮
-                # personal_center_selector = "a:text('我的个人中心')"  # 请替换成实际的选择器
-                # await page.click(personal_center_selector)
-                # print("已点击‘个人中心’按钮")
-                # await asyncio.sleep(2)  # 等待页面加载
-                #
-                # # 点击“我的订单”按钮
-                # my_orders_selector = "a:text('我的订单')"  # 请替换成实际的选择器
-                # await page.click(my_orders_selector)
-                # print("已点击‘我的订单’按钮")
+                # 定位元素 V豆页面
+                back = page.locator('.backImgApp.icon.iconfont.icon-arrow-left')
+                vdou = page.locator('.am-flexbox.ml-mItem.am-flexbox-dir-column.am-flexbox-align-center')
+                # 检查元素是否存在并可见
+                if await vdou.count() > 0:
+                    print("✅ vdou元素存在，执行点击")
+                    await vdou.first.click()
+                    await asyncio.sleep(3)  # 等待3秒
+                if await back.count() > 0:
+                    print("✅ back元素存在，执行点击")
+                    await back.click()
+                    await asyncio.sleep(3)  # 等待3秒
+
                 try:
                     print("✅ 更新cookie!")
                     await context.storage_state(path=f"{account_file}")
@@ -227,13 +221,6 @@ async def auto_answer_first(account_file, _url):
         else:
             print("❌ 确认按钮不存在！")
 
-        # try:
-        #     # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
-        #     print("✅ 更新cookie!")
-        #     await context.storage_state(path=f"{account_file}")
-        # except Exception as e:
-        #     print(f"❌ Page load failed: {e}")
-
 
 async def get_answer(account_file, _url):
     async with async_playwright() as playwright:
@@ -286,18 +273,12 @@ async def get_answer(account_file, _url):
                     print(f"⚠️ JSON 解析失败: {e}")
 
             # 绑定事件监听
+
         page.on("response", handle_response)
 
         await page.goto(_url)
         await page.wait_for_load_state("load")
         await page.wait_for_load_state("networkidle")
-
-        # try:
-        #     # await page.wait_for_url(url, timeout=15000)  # Timeout after 15s
-        #     print("✅ 更新cookie!")
-        #     await context.storage_state(path=f"{account_file}")
-        # except Exception as e:
-        #     print(f"❌ Page load failed: {e}")
 
         await browser.close()
 
@@ -307,7 +288,6 @@ async def get_answer(account_file, _url):
 def run(surveyurl, item_id):
     account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
     url = surveyurl + "&processKey=MF17712895"
-    # url = "https://m.svw-volkswagen.com/marketing/survey/questionAnswer/index.html?surveyId=1900016874458370050&n=n"
     asyncio.run(auto_answer_first(str(account_file), url))
     getAnswer = asyncio.run(get_answer(str(account_file), url))
 
@@ -324,14 +304,14 @@ def run(surveyurl, item_id):
 
 
 def timer():
-    url1 = "https://m.svw-volkswagen.com/mall/myLogin"
+    url1 = "https://m-club.svw-volkswagen.com/pointEvents"
     account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
     asyncio.run(keep_login(account_file, url1))
 
 
 if __name__ == '__main__':
     # url = "https://m.svw-volkswagen.com/marketing/survey/questionAnswer/index.html?surveyId=1900016874458370050"
-    url = "https://mall.svw-volkswagen.com/user"
+    # url = "https://mall.svw-volkswagen.com/user"
     # run(url, "1420491057860739072")
     timer()
     # account_file = Path(BASE_DIR / "cookies" / "dazhong" / "account.json")
