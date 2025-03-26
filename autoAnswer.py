@@ -81,7 +81,6 @@ async def keep_login(account_file, _url):
         await page.wait_for_load_state('load')
         await page.wait_for_load_state("networkidle")
         while True:
-
             try:
                 await asyncio.sleep(20)  # 等待20秒
                 current_url = page.url
