@@ -62,9 +62,9 @@ def sendDzMsgToTeam(msg, title, desc, url, activityUrl="", item_id=""):
                              "https://img0.baidu.com/it/u=3208604261,3520655236&fm=253&fmt=auto&app=138&f=JPEG?w=771&h=500")
             # 尝试获取答案
             # 调用run方法，传入activityUrl和item_id
-            answerTxt = run(activityUrl, item_id)
-            if answerTxt:
-                client.post_text(app_id, userid, answerTxt)
+            # answerTxt = run(activityUrl, item_id)
+            # if answerTxt:
+            #     client.post_text(app_id, userid, answerTxt)
 
         if send_msg_result.get('ret') != 200:
             print("发送消息失败:", send_msg_result)
