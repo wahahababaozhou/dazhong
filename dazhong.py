@@ -6,7 +6,7 @@ import requests
 import concurrent.futures
 import wechat
 from conf import DB_CONFIG
-from gewechat import sendDzMsgToTeam
+from gewechat import sendDzMsgToWeCom
 
 logging.basicConfig(
     filename='C:/work/code/dazhong/app.log',  # 日志文件名
@@ -88,7 +88,7 @@ def process_data(data):
             # 标记该 id 为已处理
             mark_id_as_processed(item_id, "https://m.svw-volkswagen.com/community/article/article-detail?id=" + item_id,
                                  activityUrl)
-            sendDzMsgToTeam(
+            sendDzMsgToWeCom(
                 f"新答题类V豆奖励内容\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
                 item['artTitle'],
                 item['feedContent'],
@@ -101,7 +101,7 @@ def process_data(data):
             logging.info(f"发现 V豆奖励内容，ID: {item_id}, 文章标题: {item['artTitle']}，发布时间: {time_str}")
             # 标记该 id 为已处理
             mark_id_as_processed(item_id, "https://m.svw-volkswagen.com/community/article/article-detail?id=" + item_id)
-            sendDzMsgToTeam(
+            sendDzMsgToWeCom(
                 f"新V豆奖励\n文章标题: {item['artTitle']}\n发布时间: {time_str}\n审核通过时间: {approveTime}",
                 item['artTitle'],
                 item['feedContent'],

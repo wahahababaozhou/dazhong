@@ -9,7 +9,7 @@ from gewechat import syncGeweStatus
 # 获取最新的文章
 schedule.every(1).minutes.do(fetch_and_process_data)
 # 获取微信的在线状态
-schedule.every(2).minutes.do(syncGeweStatus)
+# schedule.every(2).minutes.do(syncGeweStatus)
 
 while True:
     schedule.run_pending()  # 运行所有等待的任务

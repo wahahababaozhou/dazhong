@@ -1,7 +1,9 @@
 from gewechat_client import GewechatClient
-
+import http.client
+import json
 import wechat
-from autoAnswer import run
+
+# from phonwx import publish_group_notice
 
 # 配置参数
 base_url = "http://localhost:2531/v2/api"
@@ -31,7 +33,34 @@ def syncGeweStatus():
         wechat.sendtext(f"gewe获取个人信息失败：{str(e)}")
 
 
-def sendDzMsgToTeam(msg, title, desc, url, activityUrl="", item_id=""):
+def sendDzMsgToWeCom(msg, title, desc, url, activityUrl="", item_id=""):
+    # 发送消息至企业微信
+    if activityUrl:
+        msgData = msg + "\n活动链接： \n" + url + "\n直接答题链接" + activityUrl
+    else:
+        msgData = msg + "\n活动链接： \n" + url
+    wechat.sendtext(msgData)
+    sendToGongzhonghao(title, msgData)
+
+
+def sendToGongzhonghao(title, content):
+    conn = http.client.HTTPSConnection("www.pushplus.plus")
+    payload = json.dumps({
+        "token": "ff28e59b90264a2f85233d947a3ea8d3",
+        "title": title,
+        "content": content,
+        "template": "markdown"
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    conn.request("POST", "/send", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    print(data.decode("utf-8"))
+
+
+def sendDzMsgToTeambak(msg, title, desc, url, activityUrl="", item_id=""):
     # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
     # 登录, 自动创建二维码，扫码后自动登录
@@ -77,5 +106,7 @@ def sendDzMsgToTeam(msg, title, desc, url, activityUrl="", item_id=""):
 
 
 if __name__ == "__main__":
-    sendDzMsgToTeam("test", "test", "test", "https://m.svw-volkswagen.com/community/article/article-detail?id=",
-                    "https://m.svw-volkswagen.com/community/article/article-detail?id=")
+    sendDzMsgToWeCom(
+        " 新答题类V豆奖励内容\n    文章标题: 周末来打卡 | 你的目标现在完成了吗？\n    发布时间: 2025-05-03 11:00:07\n    审核通过时间: 2025-05-03 11:02:30",
+        "周末来打卡 | 你的目标现在完成了吗？", "test", "https://m.svw-volkswagen.com/community/article/article-detail?id=1438248395078381568",
+        "https://m.svw-volkswagen.com/marketing/survey/v2/questionnaire?surveyId=1920313680169734145&surveyType=7")
