@@ -49,6 +49,7 @@ def sendToGongzhonghao(title, content):
         "token": "ff28e59b90264a2f85233d947a3ea8d3",
         "title": title,
         "content": content,
+        "topic": "dazhong",
         "template": "markdown"
     })
     headers = {
